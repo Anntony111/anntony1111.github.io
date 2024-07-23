@@ -1,148 +1,73 @@
-// Инициализация Telegram Web App
-Telegram.WebApp.ready(); 
+import { createClient } from '@supabase/supabase-js';
 
-// Массив с данными о машинках (замените на свои данные)
-const cars = [
-  { name: "Muscle Car", image: "muscle_car.png", level: 1, price: 10 },
-  { name: "Sports Car", image: "sports_car.png", level: 2, price: 100 },
-  // ... другие машинки (до 10 уровня)
-];
-
-// Массив для хранения купленных машинок
-let ownedCars = [];
-
-// Переменные для хранения данных
-let balance = 10; // Начальный баланс пользователя
-let earnRate = 0;
-let topScore = 0;
-
-function displayCars() {
-    const inventory = document.getElementById("inventory");
-    inventory.innerHTML = ""; // Очищаем инвентарь
-  
-    for (let i = 0; i < 12; i++) { 
-      const carSlot = document.createElement("div");
-      carSlot.classList.add("car-slot");
-  
-      if (i < ownedCars.length) {
-        const carImage = document.createElement("img");
-        carImage.src = ownedCars[i].image;
-        carImage.alt = ownedCars[i].name;
-        carSlot.appendChild(carImage);
-  
-        // Создаем элемент для отображения уровня только если есть машинка
-        const carLevel = document.createElement("div");
-        carLevel.classList.add("car-level");
-        carLevel.textContent = `Lvl ${ownedCars[i].level}`; // Отображаем уровень конкретной машинки
-        carSlot.appendChild(carLevel);
-      } 
-  
-      inventory.appendChild(carSlot);
-    }
-  }
-
-// Функция для обновления скорости заработка
-function updateEarnRate() {
-    earnRate = ownedCars.reduce((sum, car) => sum + car.level, 0); // Суммируем уровни всех машинок
-    updateInfoPanels();
-  }
-
-// Функция для заработка монет (вызывается каждую минуту)
-function earnCoins() {
-    balance += earnRate;
-    updateInfoPanels();
-  }
-  
-  setInterval(earnCoins, 600); // Запускаем заработок монет каждую минуту
-
-// Функция для заработка монет (вызывается каждую минуту)
-function earnCoins() {
-    balance += earnRate;
-    updateInfoPanels();
-  }
-  
-// Обработчик события для кнопки "Купить" в магазине
-document.getElementById("shop").addEventListener("click", (event) => {
-  if (event.target.classList.contains("buy-button")) {
-    if (ownedCars.length >= 12) { 
-      alert("Превышен лимит гаража");
-      return;
-    }
-
-    const carIndex = parseInt(event.target.dataset.carIndex);
-    const car = cars[carIndex];
-
-    if (balance >= car.price) {
-      balance -= car.price;
-      ownedCars.push(car); // Добавляем машинку в инвентарь
-      displayCars(); 
-      updateEarnRate(); 
-      updateInfoPanels(); 
-    } else {
-      // ... (сообщение о недостатке средств)
-    }
-  }
-});
-// Функция для анимации движения машинок
-function animateCars() {
-  // ... (логика анимации)
-}
-
-// Функция для обновления значений в табличках
-function updateInfoPanels() {
-  document.getElementById("balance").textContent = balance;
-  document.getElementById("earnRate").textContent = `${earnRate}/мин`;
-  document.getElementById("topScore").textContent = topScore;
-}
-
-// Обработчики событий для кнопок (пример)
-document.getElementById("shopButton").addEventListener("click", () => {
-  // ... (логика открытия магазина)
-});
+const supabaseUrl = 'https://zomctncvpyijkfswdqjd.supabase.co'; // Замените на ваш URL Supabase
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvbWN0bmN2cHlpamtmc3dkcWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE2OTY4NDIsImV4cCI6MjAzNzI3Mjg0Mn0.2umISx4mFtp5xWdEhmzgHRO8oYsocrPpf2c6pOTYDXM'; // Замените на ваш ключ Supabase
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 
-// Функция для отображения магазина
-function displayShop() {
-    const shop = document.getElementById("shop");
-    shop.innerHTML = ""; // Очищаем магазин
-  
-    cars.forEach(car => {
-      const shopItem = document.createElement("div");
-      shopItem.classList.add("shop-item");
-  
-      const carImage = document.createElement("img");
-      carImage.src = car.image;
-      carImage.alt = car.name;
-      shopItem.appendChild(carImage);
-  
-      const carInfo = document.createElement("div");
-      carInfo.innerHTML = `
-        <p>Уровень: ${car.level}</p>
-        <p>Цена: ${car.price}</p>
-        <button class="buy-button" data-car-index="${cars.indexOf(car)}">Купить</button>
-      `;
-      shopItem.appendChild(carInfo);
-  
-      shop.appendChild(shopItem);
+
+
+const profileButton = document.getElementById("profileButton");
+const profileMenu = document.getElementById("profileMenu");
+const telegramIdElement = document.getElementById("telegramId");
+const userNameElement = document.getElementById("userName");
+const carCBalanceElement = document.getElementById("carCBalance");
+const carRBalanceElement = document.getElementById("carRBalance");
+const carTBalanceElement = document.getElementById("carTBalance");
+
+// Функция для получения имени пользователя из Telegram.WebApp.initData
+async function getTelegramUserName() {
+  try {
+    const initData = await new Promise((resolve) => {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      resolve(Telegram.WebApp.initData);
     });
-  }
-  
-  // Обработчик события для кнопки "Магазин"
-  document.getElementById("shopButton").addEventListener("click", () => {
-    displayShop();
-    document.getElementById("shop").style.display = "flex"; // Показываем магазин
-  });
-  
-  // Обработчик события для закрытия магазина
-  document.getElementById("shop").addEventListener("click", (event) => {
-    if (event.target.id === "shop") { // Проверяем, что клик был вне элементов магазина
-      document.getElementById("shop").style.display = "none"; // Скрываем магазин
-    }
-  });
-  
 
+    return initData.user.first_name || initData.user.username || "Пользователь";
+  } catch (error) {
+    console.error("Ошибка при получении имени пользователя:", error);
+    return "Пользователь"; // Возвращаем значение по умолчанию при ошибке
+  }
+}
+
+async function initializeProfile() {
+    const telegramUserId = Telegram.WebApp.initDataUnsafe.user.id;
   
-// Вызываем функции при загрузке страницы
-displayCars();
-updateInfoPanels();
-// animateCars(); // Запустите анимацию, когда она будет готова
+    const { data: existingUser, error } = await supabase
+      .from('users')
+      .select('telegram_id, userr, balance, b3, inventory')
+      .eq('telegram_id', telegramUserId)
+      .single();
+
+  if (error) {
+    console.error(error);
+  } else if (existingUser) {
+    updateProfileUI(existingUser);
+  } else {
+    const userName = await getTelegramUserName(); // Получаем имя пользователя
+    const { error: insertError } = await supabase
+      .from('users')
+      .insert({ telegram_id: telegramUserId, name: userName }); // Добавляем имя при создании профиля
+
+    if (insertError) {
+      console.error(insertError);
+    } else {
+      initializeProfile(); 
+    }
+  }
+}
+
+function updateProfileUI(user) {
+    telegramIdElement.textContent = user.telegram_id;
+    userNameElement.textContent = user.userr;
+    carCBalanceElement.textContent = user.balance || 0; // Отображаем 0, если баланс не определен
+    carRBalanceElement.textContent = user.b2 || 0;
+    carTBalanceElement.textContent = user.b3 || 0;
+}
+
+profileButton.addEventListener("click", () => {
+  profileMenu.style.display = profileMenu.style.display === "none" ? "block" : "none";
+});
+
+initializeProfile();
